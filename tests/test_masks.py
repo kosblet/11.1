@@ -33,5 +33,3 @@ def test_obfuscate_account_number_short():
 def test_obfuscate_account_number_very_short():
     result = obfuscate_account_number("1234")
     assert result == "**34"
-
-
