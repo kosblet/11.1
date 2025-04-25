@@ -13,5 +13,3 @@ def test_format_date_valid():
 def test_format_date_invalid_format():
     result = format_date("invalid-date")
     assert result == "Неверный формат даты"
-
-

@@ -109,4 +109,3 @@ def test_transaction_descriptions(sample_transactions):
 def test_card_number_generator(start, stop, expected_numbers):
     result = list(card_number_generator(start, stop))
     assert result == expected_numbers
-
