@@ -53,4 +53,3 @@ def test_reorder_operations_ascending():
     ]
     result = reorder_operations_by_date(operations, descending=False)
     assert result[0]["id"] == 1
-

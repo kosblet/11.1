@@ -7,5 +7,3 @@ def format_date(date_str: str) -> str:
         return date_obj.strftime("%d.%m.%Y")
     except ValueError:
         return "Неверный формат даты"
-
-
