@@ -1,54 +1,27 @@
-import logging
-import sys  # Добавлен импорт sys
+import sys
 from functools import wraps
-from datetime import datetime
 
-
-def log(filename: str = None):
+def log_to_stdout(func):
     """
-    Декоратор для логирования работы функции.
+    Декоратор для логирования выполнения функции в stdout.
+    Выводит результат выполнения функции в формате:
+    - 'my_function ok' при успешном выполнении.
+    - 'my_function error: <тип ошибки>. Inputs: (args), {kwargs}' при ошибке.
 
-    :param filename: Имя файла для записи логов. Если не указано, логи выводятся в консоль.
+    :param func: Функция, которую нужно декорировать.
+    :return: Обернутая функция.
     """
-
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            # Настройка логгера
-            logger = logging.getLogger(func.__name__)
-            logger.setLevel(logging.INFO)
-
-            if filename:
-                handler = logging.FileHandler(filename, mode="a", encoding="utf-8")
-            else:
-                handler = logging.StreamHandler()  # По умолчанию выводит в stderr
-                handler.stream = sys.stdout  # Перенаправляем в stdout
-
-            formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-
-            # Логирование начала выполнения
-            logger.info(
-                f"Вызов функции {func.__name__} с параметрами: args={args}, kwargs={kwargs}"
-            )
-
-            try:
-                # Выполнение функции
-                result = func(*args, **kwargs)
-                # Логирование успешного завершения
-                logger.info(
-                    f"Функция {func.__name__} успешно завершена. Результат: {result}"
-                )
-                return result
-            except Exception as e:
-                # Логирование ошибки
-                logger.error(
-                    f"Ошибка в функции {func.__name__}: {type(e).__name__}. "
-                    f"Входные параметры: args={args}, kwargs={kwargs}"
-                )
-                raise  # Переброс исключения
-
-        return wrapper
-
-    return decorator
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            # Выполняем функцию
+            result = func(*args, **kwargs)
+            # Логируем успешное выполнение
+            print(f"{func.__name__} ok")
+            return result
+        except Exception as e:
+            # Логируем ошибку
+            error_message = f"{func.__name__} error: {type(e).__name__}. Inputs: {args}, {kwargs}"
+            print(error_message)
+            raise  # Переброс исключения
+    return wrapper
