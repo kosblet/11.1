@@ -1,45 +1,58 @@
 import pytest
-import json
-import os
-from src.utils import read_json_file
+from unittest.mock import patch
+import pandas as pd  # Добавьте этот импорт
+from src.utils import read_csv_transactions, read_excel_transactions
 
 
-def test_read_json_file_valid(tmp_path):
+@patch("pandas.read_csv")
+def test_read_csv_transactions(mock_read_csv):
     """
-    Тестирование чтения корректного JSON-файла.
+    Тестирование чтения CSV-файла.
     """
-    # Создаем временный JSON-файл
-    file = tmp_path / "test.json"
-    file.write_text('[{"id": 1, "name": "Test"}]')
+    mock_data = pd.DataFrame(
+        {
+            "id": [1],
+            "state": ["EXECUTED"],
+            "date": ["2023-05-29T10:46:27Z"],
+            "amount": [17205],
+            "currency_name": ["Rupiah"],
+            "currency_code": ["IDR"],
+            "from": ["American Express 6824612302544616"],
+            "to": ["Discover 9272851343747436"],
+            "description": ["Перевод с карты на карту"],
+        }
+    )
+    mock_read_csv.return_value = mock_data
 
-    # Читаем файл
-    result = read_json_file(str(file))
-    assert result == [{"id": 1, "name": "Test"}]
-
-
-def test_read_json_file_empty(tmp_path):
-    """
-    Тестирование чтения пустого JSON-файла.
-    """
-    file = tmp_path / "empty.json"
-    file.write_text("")
-    result = read_json_file(str(file))
-    assert result == []
-
-
-def test_read_json_file_invalid_json(tmp_path):
-    """
-    Тестирование чтения некорректного JSON-файла.
-    """
-    file = tmp_path / "invalid.json"
-    file.write_text('{"key": "value"}')  # Не список
-    result = read_json_file(str(file))
-    assert result == []
+    result = read_csv_transactions("dummy.csv")
+    assert len(result) == 1
+    assert result[0]["id"] == 1
+    assert result[0]["state"] == "EXECUTED"
 
 
-def test_read_json_file_not_found():
+@patch("pandas.read_excel")
+def test_read_excel_transactions(mock_read_excel):
     """
-    Тестирование попытки чтения несуществующего файла.
+    Тестирование чтения Excel-файла.
     """
-    result = read_json_file("nonexistent.json")
-    assert result == []
+    mock_data = pd.DataFrame(
+        [
+            {
+                "id": 1,
+                "state": "EXECUTED",
+                "date": "2023-05-29T10:46:27Z",
+                "amount": 17205,
+                "currency_name": "Rupiah",
+                "currency_code": "IDR",
+                "from": "American Express 6824612302544616",
+                "to": "Discover 9272851343747436",
+                "description": "Перевод с карты на карту",
+            }
+        ]
+    )
+    mock_read_excel.return_value = mock_data
+
+    result = read_excel_transactions("dummy.xlsx")
+    assert len(result) == 1
+    assert result[0]["id"] == 1
+    assert result[0]["state"] == "EXECUTED"

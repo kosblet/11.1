@@ -1,6 +1,7 @@
 import sys
 from functools import wraps
 
+
 def log_to_stdout(func):
     """
     Декоратор для логирования выполнения функции в stdout.
@@ -11,6 +12,7 @@ def log_to_stdout(func):
     :param func: Функция, которую нужно декорировать.
     :return: Обернутая функция.
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -21,7 +23,10 @@ def log_to_stdout(func):
             return result
         except Exception as e:
             # Логируем ошибку
-            error_message = f"{func.__name__} error: {type(e).__name__}. Inputs: {args}, {kwargs}"
+            error_message = (
+                f"{func.__name__} error: {type(e).__name__}. Inputs: {args}, {kwargs}"
+            )
             print(error_message)
             raise  # Переброс исключения
+
     return wrapper

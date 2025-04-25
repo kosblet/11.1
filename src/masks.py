@@ -9,7 +9,9 @@ logger = logging.getLogger("masks")
 logger.setLevel(logging.DEBUG)  # Устанавливаем уровень логирования
 
 # Настройка file_handler для записи логов в файл
-file_handler = logging.FileHandler("logs/masks.log", mode="w")  # mode="w" для перезаписи файла при каждом запуске
+file_handler = logging.FileHandler(
+    "logs/masks.log", mode="w"
+)  # mode="w" для перезаписи файла при каждом запуске
 file_handler.setLevel(logging.DEBUG)
 
 # Формат записи логов

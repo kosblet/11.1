@@ -3,10 +3,12 @@ import sys
 import pytest
 from src.decorators import log_to_stdout
 
+
 def test_log_success(capsys):
     """
     Тестирование успешного выполнения функции с декоратором.
     """
+
     @log_to_stdout
     def add(a, b):
         return a + b
@@ -16,10 +18,12 @@ def test_log_success(capsys):
     assert captured.out.strip() == "add ok"
     assert result == 5
 
+
 def test_log_error(capsys):
     """
     Тестирование ошибки в функции с декоратором.
     """
+
     @log_to_stdout
     def divide(a, b):
         return a / b
