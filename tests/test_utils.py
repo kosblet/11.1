@@ -1,58 +1,22 @@
 import pytest
-from unittest.mock import patch
-import pandas as pd  # Добавьте этот импорт
-from src.utils import read_csv_transactions, read_excel_transactions
+from src.utils import search_transactions_by_description, count_operations_by_categories
 
-
-@patch("pandas.read_csv")
-def test_read_csv_transactions(mock_read_csv):
-    """
-    Тестирование чтения CSV-файла.
-    """
-    mock_data = pd.DataFrame(
-        {
-            "id": [1],
-            "state": ["EXECUTED"],
-            "date": ["2023-05-29T10:46:27Z"],
-            "amount": [17205],
-            "currency_name": ["Rupiah"],
-            "currency_code": ["IDR"],
-            "from": ["American Express 6824612302544616"],
-            "to": ["Discover 9272851343747436"],
-            "description": ["Перевод с карты на карту"],
-        }
-    )
-    mock_read_csv.return_value = mock_data
-
-    result = read_csv_transactions("dummy.csv")
+def test_search_transactions_by_description():
+    transactions = [
+        {"id": 1, "description": "Перевод организации"},
+        {"id": 2, "description": "Открытие вклада"},
+    ]
+    result = search_transactions_by_description(transactions, "организации")
     assert len(result) == 1
     assert result[0]["id"] == 1
-    assert result[0]["state"] == "EXECUTED"
 
-
-@patch("pandas.read_excel")
-def test_read_excel_transactions(mock_read_excel):
-    """
-    Тестирование чтения Excel-файла.
-    """
-    mock_data = pd.DataFrame(
-        [
-            {
-                "id": 1,
-                "state": "EXECUTED",
-                "date": "2023-05-29T10:46:27Z",
-                "amount": 17205,
-                "currency_name": "Rupiah",
-                "currency_code": "IDR",
-                "from": "American Express 6824612302544616",
-                "to": "Discover 9272851343747436",
-                "description": "Перевод с карты на карту",
-            }
-        ]
-    )
-    mock_read_excel.return_value = mock_data
-
-    result = read_excel_transactions("dummy.xlsx")
-    assert len(result) == 1
-    assert result[0]["id"] == 1
-    assert result[0]["state"] == "EXECUTED"
+def test_count_operations_by_categories():
+    transactions = [
+        {"id": 1, "description": "Перевод организации"},
+        {"id": 2, "description": "Открытие вклада"},
+        {"id": 3, "description": "Перевод организации"},
+    ]
+    categories = ["Перевод организации", "Открытие вклада"]
+    result = count_operations_by_categories(transactions, categories)
+    assert result["Перевод организации"] == 2
+    assert result["Открытие вклада"] == 1
