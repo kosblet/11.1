@@ -1,8 +1,7 @@
-import requests
+import pandas as pd
 import logging
-from typing import Optional
 
-# Настройка логгера для модуля utils
+# Настройка логгера
 logger = logging.getLogger("utils_logger")
 logger.setLevel(logging.DEBUG)
 
@@ -17,39 +16,70 @@ file_handler.setFormatter(file_formatter)
 # Добавление обработчика к логгеру
 logger.addHandler(file_handler)
 
-# Константа для API ключа (замените на ваш ключ)
-API_KEY = "YOUR_API_KEY"  # Замените на реальный API ключ
-BASE_URL = "https://v6.exchangerate-api.com/v6"
 
-
-def convert_currency(amount: float, from_currency: str, to_currency: str) -> Optional[float]:
+def read_csv_transactions(file_path: str) -> list[dict]:
     """
-    Конвертирует сумму из одной валюты в другую с использованием API.
+    Считывает финансовые операции из CSV-файла.
 
-    :param amount: Сумма для конвертации.
-    :param from_currency: Исходная валюта (например, "USD").
-    :param to_currency: Целевая валюта (например, "RUB").
-    :return: Конвертированная сумма или None в случае ошибки.
+    :param file_path: Путь к CSV-файлу.
+    :return: Список словарей с данными о транзакциях или пустой список при ошибке.
     """
     try:
-        logger.info(f"Попытка конвертации {amount} {from_currency} в {to_currency}.")
+        # Чтение CSV файла
+        df = pd.read_csv(file_path, sep=";", header=None)
 
-        # Формируем URL для запроса
-        url = f"{BASE_URL}/{API_KEY}/pair/{from_currency}/{to_currency}"
+        # Определение названий столбцов
+        columns = [
+            "id", "state", "date", "amount", "currency_name", "currency_code",
+            "from", "to", "description"
+        ]
 
-        # Выполняем запрос к API
-        response = requests.get(url)
-        data = response.json()
+        # Проверка количества столбцов
+        if len(df.columns) != len(columns):
+            logger.error(f"Неверное количество столбцов в CSV-файле: {len(df.columns)}")
+            return []
 
-        # Проверяем успешность запроса
-        if data.get("result") == "success":
-            rate = data["conversion_rate"]
-            converted_amount = amount * rate
-            logger.info(f"Конвертация успешна. Курс: {rate}, Результат: {converted_amount}")
-            return round(converted_amount, 2)
-        else:
-            logger.error(f"Ошибка при получении курса валют: {data.get('error-type')}")
-            return None
+        # Присвоение названий столбцов
+        df.columns = columns
+
+        # Преобразование DataFrame в список словарей
+        transactions = df.to_dict(orient="records")
+        logger.info("CSV файл успешно прочитан.")
+        return transactions
     except Exception as e:
-        logger.error(f"Произошла ошибка при конвертации валюты: {e}")
-        return None
+        logger.error(f"Ошибка при чтении CSV-файла: {e}")
+        return []
+
+
+def read_excel_transactions(file_path: str) -> list[dict]:
+    """
+    Считывает финансовые операции из Excel-файла.
+
+    :param file_path: Путь к Excel-файлу.
+    :return: Список словарей с данными о транзакциях или пустой список при ошибке.
+    """
+    try:
+        # Чтение Excel файла
+        df = pd.read_excel(file_path, header=None)
+
+        # Определение названий столбцов
+        columns = [
+            "id", "state", "date", "amount", "currency_name", "currency_code",
+            "from", "to", "description"
+        ]
+
+        # Проверка количества столбцов
+        if len(df.columns) != len(columns):
+            logger.error(f"Неверное количество столбцов в Excel-файле: {len(df.columns)}")
+            return []
+
+        # Присвоение названий столбцов
+        df.columns = columns
+
+        # Преобразование DataFrame в список словарей
+        transactions = df.to_dict(orient="records")
+        logger.info("Excel файл успешно прочитан.")
+        return transactions
+    except Exception as e:
+        logger.error(f"Ошибка при чтении Excel-файла: {e}")
+        return []
