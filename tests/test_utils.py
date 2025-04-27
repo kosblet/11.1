@@ -1,20 +1,46 @@
-import os
 import pytest
-from src.utils import read_csv_transactions, read_json_file, search_transactions_by_description
+from unittest.mock import patch
+from src.utils import convert_currency
 
-def test_read_csv_transactions_logs(tmp_path):
-    file = tmp_path / "test.csv"
-    file.write_text("id;state;date;amount;currency_name;currency_code;from;to;description\n1;EXECUTED;2023-01-01;100;USD;;Visa;Mastercard;Test")
-    read_csv_transactions(str(file))
-    assert os.path.exists("utils.log")
 
-def test_read_json_file_logs(tmp_path):
-    file = tmp_path / "test.json"
-    file.write_text('[{"id": 1, "description": "Test"}]')
-    read_json_file(str(file))
-    assert os.path.exists("utils.log")
+def test_convert_currency_success():
+    """
+    Тест успешной конвертации валюты.
+    """
+    mock_response = {
+        "result": "success",
+        "conversion_rate": 75.0  # Пример курса USD -> RUB
+    }
 
-def test_search_transactions_logs():
-    transactions = [{"id": 1, "description": "Test"}, {"id": 2, "description": "Sample"}]
-    search_transactions_by_description(transactions, "test")
-    assert os.path.exists("utils.log")
+    with patch("requests.get") as mock_get:
+        mock_get.return_value.json.return_value = mock_response
+
+        result = convert_currency(100, "USD", "RUB")
+        assert result == 7500.0  # 100 USD * 75 RUB/USD
+
+
+def test_convert_currency_failure():
+    """
+    Тест неудачной конвертации валюты (ошибка API).
+    """
+    mock_response = {
+        "result": "error",
+        "error-type": "unsupported-code"
+    }
+
+    with patch("requests.get") as mock_get:
+        mock_get.return_value.json.return_value = mock_response
+
+        result = convert_currency(100, "XYZ", "RUB")
+        assert result is None  # Ожидаем None при ошибке
+
+
+def test_convert_currency_exception():
+    """
+    Тест обработки исключения при конвертации валюты.
+    """
+    with patch("requests.get") as mock_get:
+        mock_get.side_effect = Exception("Network error")
+
+        result = convert_currency(100, "USD", "RUB")
+        assert result is None  # Ожидаем None при исключении
