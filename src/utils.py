@@ -1,5 +1,7 @@
+import json
 import pandas as pd
 import logging
+from typing import List, Dict
 
 # Настройка логгера
 logger = logging.getLogger("utils_logger")
@@ -17,12 +19,12 @@ file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 
 
-def read_csv_transactions(file_path: str) -> list[dict]:
+def read_csv_transactions(file_path: str) -> List[Dict]:
     """
     Считывает финансовые операции из CSV-файла.
 
     :param file_path: Путь к CSV-файлу.
-    :return: Список словарей с данными о транзакциях или пустой список при ошибке.
+    :return: Список словарей с транзакциями или пустой список при ошибке.
     """
     try:
         # Чтение CSV файла
@@ -51,12 +53,12 @@ def read_csv_transactions(file_path: str) -> list[dict]:
         return []
 
 
-def read_excel_transactions(file_path: str) -> list[dict]:
+def read_excel_transactions(file_path: str) -> List[Dict]:
     """
     Считывает финансовые операции из Excel-файла.
 
     :param file_path: Путь к Excel-файлу.
-    :return: Список словарей с данными о транзакциях или пустой список при ошибке.
+    :return: Список словарей с транзакциями или пустой список при ошибке.
     """
     try:
         # Чтение Excel файла
@@ -82,4 +84,28 @@ def read_excel_transactions(file_path: str) -> list[dict]:
         return transactions
     except Exception as e:
         logger.error(f"Ошибка при чтении Excel-файла: {e}")
+        return []
+
+
+def read_json_file(file_path: str) -> List[Dict]:
+    """
+    Читает JSON-файл и возвращает список словарей с данными о транзакциях.
+
+    :param file_path: Путь к JSON-файлу.
+    :return: Список словарей с данными о транзакциях или пустой список при ошибке.
+    """
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+            if isinstance(data, list):
+                logger.info("JSON файл успешно прочитан.")
+                return data
+            else:
+                logger.error("Файл содержит данные, не являющиеся списком.")
+                return []
+    except FileNotFoundError:
+        logger.error(f"Файл {file_path} не найден.")
+        return []
+    except json.JSONDecodeError:
+        logger.error(f"Ошибка декодирования JSON в файле {file_path}.")
         return []

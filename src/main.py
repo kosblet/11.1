@@ -1,61 +1,50 @@
+import logging
 from src.utils import (
     read_csv_transactions,
-    read_excel_transactions,
-    read_json_file,
-    search_transactions_by_description,
-    count_operations_by_categories,
+    sort_transactions_by_date,
+    filter_transactions_by_date
 )
 
-def main():
-    print("Привет! Добро пожаловать в программу работы с банковскими транзакциями.")
-    print("Выберите источник данных:")
-    print("1. JSON-файл")
-    print("2. CSV-файл")
-    print("3. XLSX-файл")
+# Настройка логгера
+logger = logging.getLogger("main_logger")
+logger.setLevel(logging.DEBUG)
 
-    choice = input("Введите номер пункта меню: ")
-    if choice == "1":
-        transactions = read_json_file("data/operations.txt")
-    elif choice == "2":
-        transactions = read_csv_transactions("data/transactions.csv")
-    elif choice == "3":
-        transactions = read_excel_transactions("data/transactions_excel.xlsx")
-    else:
-        print("Неверный выбор. Попробуйте снова.")
+# Настройка file_handler
+file_handler = logging.FileHandler("main.log", encoding="utf-8")
+file_handler.setLevel(logging.DEBUG)
+
+# Настройка форматтера
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(file_formatter)
+
+# Добавление обработчика к логгеру
+logger.addHandler(file_handler)
+
+
+def main():
+    # Чтение данных из CSV файла
+    csv_file_path = "data/transactions.csv"
+    transactions = read_csv_transactions(csv_file_path)
+
+    if not transactions:
+        logger.error("Не удалось прочитать данные из CSV файла.")
         return
 
-    # Фильтрация по статусу
-    while True:
-        status = input("Введите статус (EXECUTED, CANCELED, PENDING): ").upper()
-        if status in ["EXECUTED", "CANCELED", "PENDING"]:
-            break
-        print("Статус операции недоступен. Попробуйте снова.")
+    # Сортировка транзакций по дате
+    sorted_transactions = sort_transactions_by_date(transactions, reverse=True)
+    logger.info("Транзакции успешно отсортированы по дате.")
 
-    filtered_transactions = [t for t in transactions if t.get("state", "").upper() == status]
+    # Фильтрация транзакций по диапазону дат
+    start_date = "2023-01-01T00:00:00Z"
+    end_date = "2023-12-31T23:59:59Z"
+    filtered_transactions = filter_transactions_by_date(sorted_transactions, start_date, end_date)
+    logger.info(f"Транзакции успешно отфильтрованы за период {start_date} - {end_date}.")
 
-    # Дополнительные фильтры
-    sort_by_date = input("Отсортировать операции по дате? (да/нет): ").lower() == "да"
-    if sort_by_date:
-        order = input("По возрастанию или по убыванию? (возрастание/убывание): ").lower()
-        reverse = order == "убывание"
-        filtered_transactions.sort(key=lambda x: x.get("date", ""), reverse=reverse)
+    # Вывод результатов
+    print("Отсортированные и отфильтрованные транзакции:")
+    for transaction in filtered_transactions:
+        print(transaction)
 
-    rub_only = input("Выводить только рублевые транзакции? (да/нет): ").lower() == "да"
-    if rub_only:
-        filtered_transactions = [
-            t for t in filtered_transactions
-            if t.get("operationAmount", {}).get("currency", {}).get("code") == "RUB"
-        ]
 
-    search_description = input("Отфильтровать список транзакций по слову в описании? (да/нет): ").lower() == "да"
-    if search_description:
-        search_string = input("Введите слово для поиска: ")
-        filtered_transactions = search_transactions_by_description(filtered_transactions, search_string)
-
-    # Вывод результата
-    if filtered_transactions:
-        print("Распечатываю итоговый список транзакций...")
-        for t in filtered_transactions:
-            print(t)
-    else:
-        print("Не найдено ни одной транзакции, подходящей под ваши условия фильтрации.")
+if __name__ == "__main__":
+    main()
