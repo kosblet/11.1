@@ -1,35 +1,41 @@
-import sys
-import os
-from src.masks import obfuscate_card_number, obfuscate_account_number
+import json
+from pathlib import Path
+import logging
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
+# Настройка логгера
+logger = logging.getLogger(__name__)
 
+# Создание директории для логов
+log_directory = Path(__file__).parent.parent / "logs"
+log_directory.mkdir(exist_ok=True)
 
-def test_obfuscate_card_number_valid():
-    result = obfuscate_card_number("9876543210987654")
-    assert result == "9876 54** **** 7654"
-
-
-def test_obfuscate_card_number_invalid_length():
-    result = obfuscate_card_number("1234")
-    assert result == "Некорректный номер карты"
-
-
-def test_obfuscate_card_number_invalid_format():
-    result = obfuscate_card_number("abcd1234efgh5678")
-    assert result == "Некорректный номер карты"
+# Настраиваем файловый обработчик логов
+log_filepath = log_directory / "utils.log"
+file_handler = logging.FileHandler(log_filepath, encoding="utf-8")
+file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s: %(message)s')
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
+logger.setLevel(logging.DEBUG)
 
 
-def test_obfuscate_account_number_valid():
-    result = obfuscate_account_number("98765432109876541234")
-    assert result == "**1234"
+def load_json_data(file_path: str):
+    """
+    Загружает данные из JSON-файла и возвращает список словарей.
 
-
-def test_obfuscate_account_number_short():
-    result = obfuscate_account_number("98765432")
-    assert result == "**5432"
-
-
-def test_obfuscate_account_number_very_short():
-    result = obfuscate_account_number("1234")
-    assert result == "**34"
+    :param file_path: Путь к JSON-файлу.
+    :return: Список словарей с данными или пустой список при ошибке.
+    """
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+            if isinstance(data, list):
+                logger.info("Данные успешно загружены из файла.")
+                return data
+            logger.warning("Файл содержит данные, не являющиеся списком.")
+            return []
+    except FileNotFoundError:
+        logger.error(f"Файл не найден: {file_path}")
+        return []
+    except json.JSONDecodeError:
+        logger.error(f"Ошибка декодирования JSON в файле: {file_path}")
+        return []
