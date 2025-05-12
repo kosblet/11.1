@@ -1,6 +1,7 @@
 import os
-import requests
 from typing import Dict
+
+import requests
 
 API_KEY = os.getenv("EXCHANGE_RATES_API_KEY")
 BASE_URL = "https://api.apilayer.com/exchangerates_data/convert"

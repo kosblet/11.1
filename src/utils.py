@@ -1,6 +1,6 @@
 import json
-from pathlib import Path
 import logging
+from pathlib import Path
 
 # Настройка логгера
 logger = logging.getLogger(__name__)
@@ -12,7 +12,9 @@ log_dir.mkdir(exist_ok=True)
 # Настраиваем файловый обработчик логов
 log_file = log_dir / "utils.log"
 file_handler = logging.FileHandler(log_file, encoding="utf-8")
-file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s: %(message)s')
+file_formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
+)
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 logger.setLevel(logging.DEBUG)

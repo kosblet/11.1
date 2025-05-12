@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 from src.widget import format_date
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
