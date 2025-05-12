@@ -28,9 +28,7 @@ def log_to_stdout(filename=None):
                 return result
             except Exception as e:
                 # Логируем ошибку
-                error_message = (
-                    f"{func.__name__} error: {type(e).__name__}. Inputs: {args}, {kwargs}"
-                )
+                error_message = f"{func.__name__} error: {type(e).__name__}. Inputs: {args}, {kwargs}"
                 print(error_message, file=output)
                 if filename:
                     output.close()  # Закрываем файл после записи

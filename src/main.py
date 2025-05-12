@@ -1,49 +1,56 @@
-import logging
-from src.utils import (
-    read_csv_transactions,
-    sort_transactions_by_date,
-    filter_transactions_by_date
-)
+# src/main.py
 
-# Настройка логгера
-logger = logging.getLogger("main_logger")
-logger.setLevel(logging.DEBUG)
+import json
+import os
 
-# Настройка file_handler
-file_handler = logging.FileHandler("main.log", encoding="utf-8")
-file_handler.setLevel(logging.DEBUG)
+from masks import get_mask_account, get_mask_card_number
 
-# Настройка форматтера
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(file_formatter)
 
-# Добавление обработчика к логгеру
-logger.addHandler(file_handler)
+def load_data(filename):
+    full_path = os.path.join(os.path.dirname(__file__), "..", "data", filename)
+    with open(full_path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 def main():
-    # Чтение данных из CSV файла
-    csv_file_path = "data/transactions.csv"
-    transactions = read_csv_transactions(csv_file_path)
+    try:
+        transactions = load_data("transactions.json")
+        print("✅ Данные загружены:", len(transactions), "транзакций\n")
 
-    if not transactions:
-        logger.error("Не удалось прочитать данные из CSV файла.")
-        return
+        for t in transactions:
+            # Получаем поля безопасно через .get()
+            desc = t.get("description", "Не указано")
 
-    # Сортировка транзакций по дате
-    sorted_transactions = sort_transactions_by_date(transactions, reverse=True)
-    logger.info("Транзакции успешно отсортированы по дате.")
+            operation_amount = t.get("operationAmount", {})
+            amount = operation_amount.get("amount", "Не указана")
+            currency_info = operation_amount.get("currency", {})
+            currency = currency_info.get("code", "Не указана")
 
-    # Фильтрация транзакций по диапазону дат
-    start_date = "2023-01-01T00:00:00Z"
-    end_date = "2023-12-31T23:59:59Z"
-    filtered_transactions = filter_transactions_by_date(sorted_transactions, start_date, end_date)
-    logger.info(f"Транзакции успешно отфильтрованы за период {start_date} - {end_date}.")
+            from_acc = t.get("from", "Не указан")
+            to_acc = t.get("to", "Не указан")
 
-    # Вывод результатов
-    print("Отсортированные и отфильтрованные транзакции:")
-    for transaction in filtered_transactions:
-        print(transaction)
+            # Маскируем "from"
+            if from_acc != "Не указан":
+                if "Счет" in from_acc:
+                    from_acc = get_mask_account(from_acc)
+                else:
+                    from_acc = get_mask_card_number(from_acc)
+            else:
+                from_acc = "Не указан"
+
+            # Маскируем "to" (всегда счет)
+            to_acc = get_mask_account(to_acc)
+
+            # Выводим информацию
+            print(f"{desc}")
+            print(f"Сумма: {amount} {currency}")
+            print(f"Откуда: {from_acc}")
+            print(f"Куда: {to_acc}\n")
+
+    except FileNotFoundError:
+        print("Файл данных не найден. Проверьте путь.")
+    except Exception as e:
+        print(f"Ошибка при выполнении программы: {e}")
 
 
 if __name__ == "__main__":

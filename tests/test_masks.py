@@ -1,18 +1,27 @@
 import pytest
-from src.masks import obfuscate_card_number, obfuscate_account_number
 
-def test_obfuscate_card_number_valid():
-    result = obfuscate_card_number("9876543210987654")
-    assert result == "9876 54** **** 7654"
+from src.masks import get_mask_account, get_mask_card_number
 
-def test_obfuscate_card_number_invalid_length():
-    with pytest.raises(ValueError, match="Номер карты должен содержать минимум 16 цифр."):
-        obfuscate_card_number("1234")
 
-def test_obfuscate_card_number_invalid_format():
-    with pytest.raises(ValueError, match="Номер карты должен содержать только цифры."):
-        obfuscate_card_number("abcd1234efgh5678")
+@pytest.mark.parametrize(
+    "card_number, expected",
+    [
+        ("1234567890123456", "1234 56** **** 3456"),
+        (1234567890123456, "1234 56** **** 3456"),
+        ("1234", "1234"),
+    ],
+)
+def test_get_mask_card_number(card_number, expected):
+    assert get_mask_card_number(card_number) == expected
 
-def test_obfuscate_account_number_very_short():
-    result = obfuscate_account_number("1234")
-    assert result == "**34"
+
+@pytest.mark.parametrize(
+    "account_number, expected",
+    [
+        ("12345678901234567890", "**7890"),
+        (12345678901234567890, "**7890"),
+        ("1234", "**1234"),
+    ],
+)
+def test_get_mask_account(account_number, expected):
+    assert get_mask_account(account_number) == expected

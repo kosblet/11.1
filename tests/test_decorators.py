@@ -1,7 +1,9 @@
 import io
 import os
 import sys
+
 import pytest
+
 from src.decorators import log_to_stdout
 
 
