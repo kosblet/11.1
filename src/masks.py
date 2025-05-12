@@ -10,5 +10,3 @@ def obfuscate_account_number(account_num: str) -> str:
     if len(account_num) <= 4:
         return f"**{account_num[-2:]}"
     return f"**{account_num[-4:]}"
-
-

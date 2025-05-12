@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 from src.widget import format_date
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
@@ -13,5 +14,3 @@ def test_format_date_valid():
 def test_format_date_invalid_format():
     result = format_date("invalid-date")
     assert result == "Неверный формат даты"
-
-

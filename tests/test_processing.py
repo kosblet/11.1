@@ -1,6 +1,8 @@
-import sys
 import os
-from src.processing import filter_operations_by_status, reorder_operations_by_date
+import sys
+
+from src.processing import (filter_operations_by_status,
+                            reorder_operations_by_date)
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
@@ -53,4 +55,3 @@ def test_reorder_operations_ascending():
     ]
     result = reorder_operations_by_date(operations, descending=False)
     assert result[0]["id"] == 1
-

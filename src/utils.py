@@ -6,12 +6,12 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 # Создание директории для логов
-log_directory = Path(__file__).parent.parent / "logs"
-log_directory.mkdir(exist_ok=True)
+log_dir = Path(__file__).parent.parent / "logs"
+log_dir.mkdir(exist_ok=True)
 
 # Настраиваем файловый обработчик логов
-log_filepath = log_directory / "utils.log"
-file_handler = logging.FileHandler(log_filepath, encoding="utf-8")
+log_file = log_dir / "utils.log"
+file_handler = logging.FileHandler(log_file, encoding="utf-8")
 file_formatter = logging.Formatter(
     "%(asctime)s - %(name)s - %(levelname)s: %(message)s"
 )
@@ -20,12 +20,12 @@ logger.addHandler(file_handler)
 logger.setLevel(logging.DEBUG)
 
 
-def load_json_data(file_path: str):
+def read_json_file(file_path: str):
     """
-    Загружает данные из JSON-файла и возвращает список словарей.
+    Читает JSON-файл и возвращает список словарей с данными о финансовых транзакциях.
 
     :param file_path: Путь к JSON-файлу.
-    :return: Список словарей с данными или пустой список при ошибке.
+    :return: Список словарей с данными о транзакциях или пустой список при ошибке.
     """
     try:
         with open(file_path, "r", encoding="utf-8") as file:
