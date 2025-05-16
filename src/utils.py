@@ -1,18 +1,21 @@
+import re
+from collections import Counter
+
+
 def search_transactions(transactions, search_string):
-    """Фильтрует транзакции по подстроке в описании."""
+    """
+    Фильтрует транзакции по подстроке в описании (через re).
+    """
+    pattern = re.compile(search_string, re.IGNORECASE)
     return [
-        transaction
-        for transaction in transactions
-        if search_string.lower() in transaction.get("description", "").lower()
+        transaction for transaction in transactions
+        if pattern.search(transaction.get("description", ""))
     ]
 
 
 def categorize_transactions(transactions, key="description"):
-    """Группирует транзакции по указанному ключу и считает количество."""
-    from collections import defaultdict
-
-    result = defaultdict(int)
-    for transaction in transactions:
-        value = transaction.get(key, "Неизвестно")
-        result[value] += 1
-    return dict(result)
+    """
+    Группирует транзакции по ключу и считает количество.
+    """
+    categories = [transaction.get(key, "Неизвестно") for transaction in transactions]
+    return dict(Counter(categories))
