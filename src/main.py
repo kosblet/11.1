@@ -1,12 +1,49 @@
 import json
 import os
+import csv
+from openpyxl import load_workbook
 from masks import mask_card_number, mask_account
 from utils import search_transactions, categorize_transactions
 
-def load_data(filename):
+def load_json(filename):
+    """Загрузка данных из JSON-файла."""
     full_path = os.path.join(os.path.dirname(__file__), "..", "data", filename)
     with open(full_path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+def load_csv(filename):
+    """Загрузка данных из CSV-файла."""
+    full_path = os.path.join(os.path.dirname(__file__), "..", "data", filename)
+    transactions = []
+    with open(full_path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            transactions.append(row)
+    return transactions
+
+def load_xlsx(filename):
+    """Загрузка данных из XLSX-файла."""
+    full_path = os.path.join(os.path.dirname(__file__), "..", "data", filename)
+    workbook = load_workbook(full_path)
+    sheet = workbook.active
+    headers = [cell.value for cell in sheet[1]]
+    transactions = []
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        transaction = {headers[i]: row[i] for i in range(len(headers))}
+        transactions.append(transaction)
+    return transactions
+
+def load_data(filename):
+    """Универсальная функция загрузки данных."""
+    _, ext = os.path.splitext(filename)
+    if ext.lower() == ".json":
+        return load_json(filename)
+    elif ext.lower() == ".csv":
+        return load_csv(filename)
+    elif ext.lower() == ".xlsx":
+        return load_xlsx(filename)
+    else:
+        raise ValueError("Неподдерживаемый формат файла")
 
 def filter_by_status(transactions, status):
     return [t for t in transactions if t.get("state", "").upper() == status.upper()]
@@ -31,13 +68,20 @@ def main():
     print("3. Получить информацию о транзакциях из XLSX-файла")
 
     choice = input("\nПользователь: ").strip()
-    if choice != "1":
-        print("На данный момент поддерживаются только JSON-файлы.\n")
+    if choice not in ["1", "2", "3"]:
+        print("Неверный выбор. Попробуйте снова.\n")
         return
 
     try:
-        transactions = load_data("transactions.json")
-        print("Для обработки выбран JSON-файл.")
+        if choice == "1":
+            filename = input("Введите имя JSON-файла: ").strip()
+        elif choice == "2":
+            filename = input("Введите имя CSV-файла: ").strip()
+        elif choice == "3":
+            filename = input("Введите имя XLSX-файла: ").strip()
+
+        transactions = load_data(filename)
+        print(f"Для обработки выбран файл: {filename}")
 
         # Фильтрация по статусу
         while True:
@@ -98,9 +142,9 @@ def main():
             print(f"Сумма: {amount} {currency}\n")
 
     except FileNotFoundError:
-        print("❌ Файл данных не найден. Проверьте путь.")
+        print("Файл данных не найден. Проверьте путь.")
     except Exception as e:
-        print(f"⚠️ Ошибка при выполнении программы: {e}")
+        print(f"Ошибка при выполнении программы: {e}")
 
 if __name__ == "__main__":
     main()
