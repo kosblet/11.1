@@ -6,5 +6,3 @@ def reorder_operations_by_date(operations_list: list, descending: bool = True) -
     return sorted(
         operations_list, key=lambda x: x.get("timestamp", ""), reverse=descending
     )
-
-

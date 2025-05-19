@@ -31,5 +31,3 @@ def card_number_generator(start, stop):
             [formatted_number[i : i + 4] for i in range(0, 16, 4)]
         )  # Разделяем на блоки по 4 цифры
         yield formatted_number
-
-
